@@ -1,0 +1,44 @@
+name: Test Functions
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        run: supabase start -x studio,imgproxy,realtime,storage
+
+      - name: Start Supabase Functions Server
+        run: supabase functions serve &
+        continue-on-error: true
+
+      - name: Wait for Supabase Functions Server to Start
+        run: sleep 4
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Poetry
+        uses: snok/install-poetry@v1
+        with:
+          poetry-version: latest
+
+      - name: Install Dependencies
+        run: poetry install
+
+      - name: Run Tests
+        run: poetry run pytest
